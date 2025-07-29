@@ -2,6 +2,7 @@ let stockInfo;
 let itemCnt;
 let lastSel;
 let totalAmt = 0;
+let sum;
 const PRODUCTS = {
   KEYBOARD: 'p1',
   MOUSE: 'p2',
@@ -74,7 +75,7 @@ function main() {
   const rightColumn = document.createElement('div');
   const manualOverlay = document.createElement('div');
   const manualColumn = document.createElement('div');
-  const stockInfo = document.createElement('div');
+  stockInfo = document.createElement('div');
   header.className = 'mb-8';
   header.innerHTML = `
     <h1 class="text-xs font-medium tracking-extra-wide uppercase mb-2">🛒 Hanghae Online Store</h1>
@@ -263,13 +264,15 @@ function main() {
   }, Math.random() * 20000);
 }
 
+// onUpdateSelectOptions 옵션 선택 창 ?
 function onUpdateSelectOptions() {
-  let totalStock;
-  let opt;
-  let discountText;
-  productSelect.innerHTML = '';
-  totalStock = 0;
+  let totalStock; //전체수량
+  let opt; // 옵션
+  let discountText; //할인문구
+  productSelect.innerHTML = ''; //productSelect 문구 초기화
+  totalStock = 0; // 전체수량 초기화
   for (let idx = 0; idx < productList.length; idx++) {
+    //productList
     let item = productList[idx];
     totalStock = totalStock + item.quantity;
   }
@@ -340,6 +343,7 @@ function handleCalculateCartStuff() {
   subTot = 0;
   const itemDiscounts = [];
   const lowStockItems = [];
+  //수량이 0이상 5개이하인걸 low재고에 쌓아놓음
   for (idx = 0; idx < productList.length; idx++) {
     if (productList[idx].quantity < 5 && productList[idx].quantity > 0) {
       lowStockItems.push(productList[idx].name);
@@ -371,19 +375,19 @@ function handleCalculateCartStuff() {
         }
       });
       if (q >= 10) {
-        if (curItem.id === PRODUCT_ONE) {
+        if (curItem.id === PRODUCTS.KEYBOARD) {
           disc = 10 / 100;
         } else {
-          if (curItem.id === p2) {
+          if (curItem.id === PRODUCTS.MOUSE) {
             disc = 15 / 100;
           } else {
-            if (curItem.id === product_3) {
+            if (curItem.id === PRODUCTS.MONITOR_ARM) {
               disc = 20 / 100;
             } else {
-              if (curItem.id === p4) {
+              if (curItem.id === PRODUCTS.LAPTOP_POUCH) {
                 disc = 5 / 100;
               } else {
-                if (curItem.id === PRODUCT_5) {
+                if (curItem.id === PRODUCTS.SPEAKER) {
                   disc = 25 / 100;
                 }
               }
@@ -523,7 +527,7 @@ function handleCalculateCartStuff() {
   for (let stockIdx = 0; stockIdx < productList.length; stockIdx++) {
     let item = productList[stockIdx];
     if (item.quantity < 5) {
-      if (item.q > 0) {
+      if (item.quantity > 0) {
         stockMsg = stockMsg + item.name + ': 재고 부족 (' + item.quantity + '개 남음)\n';
       } else {
         stockMsg = stockMsg + item.name + ': 품절\n';
@@ -569,11 +573,11 @@ function doRenderBonusPoints() {
       }
     }
     if (!product) continue;
-    if (product.id === PRODUCT_ONE) {
+    if (product.id === PRODUCTS.KEYBOARD) {
       hasKeyboard = true;
-    } else if (product.id === p2) {
+    } else if (product.id === PRODUCTS.MOUSE) {
       hasMouse = true;
-    } else if (product.id === product_3) {
+    } else if (product.id === PRODUCTS.MONITOR_ARM) {
       hasMonitorArm = true;
     }
   }
@@ -731,7 +735,7 @@ addBtn.addEventListener('click', function () {
       const newQty = parseInt(qtyElem['textContent']) + 1;
       if (newQty <= itemToAdd.quantity + parseInt(qtyElem.textContent)) {
         qtyElem.textContent = newQty;
-        itemToAdd['q']--;
+        itemToAdd.quantity--;
       } else {
         alert('재고가 부족합니다.');
       }
