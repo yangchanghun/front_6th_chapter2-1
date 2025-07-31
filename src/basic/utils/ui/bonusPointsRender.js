@@ -1,5 +1,5 @@
-import { isTuesday } from './dateUtils';
 import { cartDisp, cartState } from '../../main.basic';
+import { isTuesday } from '../dateUtils';
 import { productList, PRODUCTS } from '../stores';
 export function doRenderBonusPoints() {
   const ptsTag = document.getElementById('loyalty-points');
