@@ -1,13 +1,17 @@
+import { handleCalculateCartStuff } from './utils/cart.js';
 import { handleAddToCart, handleCartDispClick, initializeHandlers } from './utils/handlers.js';
-import { PRODUCTS, productList } from './utils/stores.js';
+import { productList } from './utils/stores.js';
+import { doRenderBonusPoints } from './utils/ui/bonusPointsRender.js';
 import { initialRender, stockInfo, sum } from './utils/ui/initialRenders.js';
-import { onUpdateSelectOptions } from './utils/ui/productRender.js';
-let stockInfo;
-let itemCnt;
-let totalAmt = 0;
+import { onUpdateSelectOptions } from './utils/ui/productOptionRender.js';
+
+export const cartState = {
+  itemCnt: 0,
+  totalAmt: 0,
+};
 let sum;
 
-const cartDisp = document.createElement('div');
+export const cartDisp = document.createElement('div');
 export const productSelect = document.createElement('select');
 const addBtn = document.createElement('button');
 
@@ -26,90 +30,9 @@ function main() {
 
 // 얜 뭘깡?
 // 계산기여?
-function handleCalculateCartStuff() {
-  totalAmt = 0;
-  itemCnt = 0;
-
-  const cartItems = Array.from(cartDisp.children);
-  let subTot = 0;
-  const itemDiscounts = [];
-
-  // 1. 수량/금액 합산 및 개별 할인 계산
-  const results = cartItems.map((node) => {
-    const curItem = productList.find((p) => p.id === node.id);
-    const qtyElem = node.querySelector('.quantity-number');
-    const q = parseInt(qtyElem.textContent);
-    const itemTot = curItem.discountedPrice * q;
-
-    node.querySelectorAll('.text-lg').forEach((el) => {
-      el.style.fontWeight = q >= 10 ? 'bold' : 'normal';
-    });
-
-    itemCnt += q;
-    subTot += itemTot;
-
-    // 개별 할인은 30개 미만일 때만 적용
-    let disc = 0;
-    if (itemCnt < 30 && q >= 10) {
-      const discMap = {
-        [PRODUCTS.KEYBOARD]: 0.1,
-        [PRODUCTS.MOUSE]: 0.15,
-        [PRODUCTS.MONITOR_ARM]: 0.2,
-        [PRODUCTS.LAPTOP_POUCH]: 0.05,
-        [PRODUCTS.SPEAKER]: 0.25,
-      };
-      disc = discMap[curItem.id] || 0;
-      if (disc > 0) {
-        itemDiscounts.push({ name: curItem.name, discount: disc * 100 });
-      }
-      totalAmt += itemTot * (1 - disc);
-    } else {
-      totalAmt += itemTot;
-    }
-
-    return { node, curItem, q, itemTot };
-  });
-
-  const originalTotal = subTot;
-  let discRate = 0;
-
-  // 2. 30개 이상이면 전체 25% 할인만 적용 (개별 할인 무시)
-  if (itemCnt >= 30) {
-    totalAmt = subTot * 0.75;
-    discRate = 0.25;
-  } else {
-    discRate = (subTot - totalAmt) / subTot;
-  }
-
-  // 3. 화요일이면 10% 추가 할인
-  const isTuesday = new Date().getDay() === 2;
-  const tuesdaySpecial = document.getElementById('tuesday-special');
-  if (isTuesday && totalAmt > 0) {
-    totalAmt = totalAmt * 0.9;
-    discRate = 1 - totalAmt / originalTotal;
-    tuesdaySpecial.classList.remove('hidden');
-  } else {
-    tuesdaySpecial.classList.add('hidden');
-  }
-
-  // 4. UI 업데이트
-  updateCartSummaryUI({
-    itemCnt,
-    subTot,
-    results,
-    itemDiscounts,
-    isTuesday,
-    totalAmt,
-    discRate,
-    originalTotal,
-  });
-
-  // 5. 재고 및 포인트 등 추가 UI 업데이트
-  updateStockAndPoints();
-}
 
 // UI 업데이트 함수 분리
-function updateCartSummaryUI({
+export function updateCartSummaryUI({
   itemCnt,
   subTot,
   results,
@@ -210,7 +133,7 @@ function updateCartSummaryUI({
 }
 
 // 재고 및 포인트 UI 업데이트 함수 분리
-function updateStockAndPoints() {
+export function updateStockAndPoints() {
   const stockMsg = productList
     .filter((item) => item.quantity < 5)
     .map((item) =>
@@ -224,78 +147,6 @@ function updateStockAndPoints() {
 }
 
 // 보너스 줄까 말까
-function isTuesday() {
-  return new Date().getDay() === 2;
-}
-
-function doRenderBonusPoints() {
-  const ptsTag = document.getElementById('loyalty-points');
-  const cartItems = Array.from(cartDisp.children);
-
-  if (cartItems.length === 0) {
-    ptsTag.style.display = 'none';
-    return;
-  }
-
-  // 기본 포인트: 구매액의 0.1%
-  const basePoints = Math.floor(totalAmt / 1000);
-  let finalPoints = basePoints > 0 ? basePoints : 0;
-  const pointsDetail = basePoints > 0 ? [`기본: ${basePoints}p`] : [];
-
-  // 화요일 2배 포인트
-  if (isTuesday() && basePoints > 0) {
-    finalPoints *= 2;
-    pointsDetail.push('화요일 2배');
-  }
-
-  // 장바구니 내 상품 ID 리스트
-  const cartIds = cartItems.map((node) => node.id);
-  const cartProducts = cartIds.map((id) => productList.find((p) => p.id === id)).filter(Boolean);
-
-  const hasKeyboard = cartProducts.some((p) => p.id === PRODUCTS.KEYBOARD);
-  const hasMouse = cartProducts.some((p) => p.id === PRODUCTS.MOUSE);
-  const hasMonitorArm = cartProducts.some((p) => p.id === PRODUCTS.MONITOR_ARM);
-
-  // 키보드+마우스 세트
-  if (hasKeyboard && hasMouse) {
-    finalPoints += 50;
-    pointsDetail.push('키보드+마우스 세트 +50p');
-  }
-
-  // 풀세트(키보드+마우스+모니터암)
-  if (hasKeyboard && hasMouse && hasMonitorArm) {
-    finalPoints += 100;
-    pointsDetail.push('풀세트 구매 +100p');
-  }
-
-  // 대량 구매 보너스
-  let bulkBonus = null;
-  if (itemCnt >= 30) {
-    bulkBonus = { pts: 100, label: '대량구매(30개+) +100p' };
-  } else if (itemCnt >= 20) {
-    bulkBonus = { pts: 50, label: '대량구매(20개+) +50p' };
-  } else if (itemCnt >= 10) {
-    bulkBonus = { pts: 20, label: '대량구매(10개+) +20p' };
-  }
-
-  if (bulkBonus) {
-    finalPoints += bulkBonus.pts;
-    pointsDetail.push(bulkBonus.label);
-  }
-
-  // 포인트 표시 업데이트
-  if (ptsTag) {
-    ptsTag.style.display = 'block';
-    if (finalPoints > 0) {
-      ptsTag.innerHTML = `
-        <div>적립 포인트: <span class="font-bold">${finalPoints}p</span></div>
-        <div class="text-2xs opacity-70 mt-1">${pointsDetail.join(', ')}</div>
-      `;
-    } else {
-      ptsTag.textContent = '적립 포인트: 0p';
-    }
-  }
-}
 
 main();
 
