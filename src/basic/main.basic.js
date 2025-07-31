@@ -1,13 +1,14 @@
 import { handleAddToCart, handleCartDispClick, initializeHandlers } from './utils/handlers.js';
 import { PRODUCTS, productList } from './utils/stores.js';
 import { initialRender, stockInfo, sum } from './utils/ui/initialRenders.js';
+import { onUpdateSelectOptions } from './utils/ui/productRender.js';
 let stockInfo;
 let itemCnt;
 let totalAmt = 0;
 let sum;
 
 const cartDisp = document.createElement('div');
-const productSelect = document.createElement('select');
+export const productSelect = document.createElement('select');
 const addBtn = document.createElement('button');
 
 function main() {
@@ -18,56 +19,9 @@ function main() {
   handleCalculateCartStuff();
 
   initializeHandlers(cartDisp, handleCalculateCartStuff, onUpdateSelectOptions);
+
   addBtn.addEventListener('click', handleAddToCart);
   cartDisp.addEventListener('click', handleCartDispClick);
-}
-
-// 8. 옵션 선택 창 업데이트
-function onUpdateSelectOptions() {
-  productSelect.innerHTML = '';
-  const totalStock = getTotalStock();
-  const optionElements = productList.map(createProductOption);
-  appendOptionsToSelect(optionElements);
-  updateSelectBorderColor(totalStock);
-}
-// 9. 총 재고 수량 계산
-function getTotalStock() {
-  return productList.reduce((sum, item) => sum + item.quantity, 0);
-}
-// 10. 상품 옵션 생성
-function createProductOption(item) {
-  const opt = document.createElement('option');
-  opt.value = item.id;
-
-  const discountText = (item.onSale ? ' ⚡SALE' : '') + (item.suggestSale ? ' 💝추천' : '');
-
-  if (item.quantity === 0) {
-    opt.textContent = `${item.name} - ${item.discountedPrice}원 (품절)` + discountText;
-    opt.disabled = true;
-    opt.className = 'text-gray-400';
-  } else if (item.onSale && item.suggestSale) {
-    opt.textContent = `⚡💝${item.name} - ${item.originalPrice}원 → ${item.discountedPrice}원 (25% SUPER SALE!)`;
-    opt.className = 'text-purple-600 font-bold';
-  } else if (item.onSale) {
-    opt.textContent = `⚡${item.name} - ${item.originalPrice}원 → ${item.discountedPrice}원 (20% SALE!)`;
-    opt.className = 'text-red-500 font-bold';
-  } else if (item.suggestSale) {
-    opt.textContent = `💝${item.name} - ${item.originalPrice}원 → ${item.discountedPrice}원 (5% 추천할인!)`;
-    opt.className = 'text-blue-500 font-bold';
-  } else {
-    opt.textContent = `${item.name} - ${item.discountedPrice}원` + discountText;
-  }
-
-  return opt;
-}
-
-// 11. 옵션 요소를 셀렉트 박스에 추가
-function appendOptionsToSelect(optionElements) {
-  optionElements.forEach((opt) => productSelect.appendChild(opt));
-}
-// 12. 셀렉트 박스의 테두리 색상 업데이트
-function updateSelectBorderColor(totalStock) {
-  productSelect.style.borderColor = totalStock < 50 ? 'orange' : '';
 }
 
 // 얜 뭘깡?
