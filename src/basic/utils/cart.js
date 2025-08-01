@@ -1,6 +1,7 @@
 import { productList, PRODUCTS } from './stores';
-import { updateCartSummaryUI, updateStockAndPoints, cartState, cartDisp } from '../main.basic';
+import { updateCartSummaryUI, cartState, cartDisp } from '../main.basic';
 import { isTuesday } from './dateUtils';
+import { updateStockAndPoints } from './uiUpdate';
 export function handleCalculateCartStuff() {
   cartState.itemCnt = 0;
   cartState.totalAmt = 0;

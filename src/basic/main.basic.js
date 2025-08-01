@@ -128,20 +128,6 @@ export function updateCartSummaryUI({
   }
 }
 
-// 재고 및 포인트 UI 업데이트 함수 분리
-export function updateStockAndPoints() {
-  const stockMsg = productList
-    .filter((item) => item.quantity < 5)
-    .map((item) =>
-      item.quantity > 0
-        ? `${item.name}: 재고 부족 (${item.quantity}개 남음)`
-        : `${item.name}: 품절`,
-    )
-    .join('\n');
-  stockInfo.textContent = stockMsg;
-  doRenderBonusPoints();
-}
-
 // 보너스 줄까 말까
 
 main();
