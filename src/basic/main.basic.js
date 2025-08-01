@@ -9,7 +9,6 @@ export const cartState = {
   itemCnt: 0,
   totalAmt: 0,
 };
-let sum;
 
 export const cartDisp = document.createElement('div');
 export const productSelect = document.createElement('select');
@@ -27,9 +26,6 @@ function main() {
   addBtn.addEventListener('click', handleAddToCart);
   cartDisp.addEventListener('click', handleCartDispClick);
 }
-
-// 얜 뭘깡?
-// 계산기여?
 
 // UI 업데이트 함수 분리
 export function updateCartSummaryUI({

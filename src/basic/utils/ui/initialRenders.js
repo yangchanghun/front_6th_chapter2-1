@@ -19,7 +19,7 @@ export function initialRender(productSelect, addBtn, cartDisp) {
 
   // 전역 변수들 초기화
   stockInfo = document.createElement('div');
-
+  mainLayout.className = 'grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6 flex-1 overflow-hidden';
   // 2. 헤더 설정
   header.className = 'mb-8';
   header.innerHTML = `
